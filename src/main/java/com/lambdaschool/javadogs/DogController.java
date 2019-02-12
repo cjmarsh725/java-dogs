@@ -2,10 +2,10 @@ package com.lambdaschool.javadogs;
 
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,10 +37,10 @@ public class DogController
     @GetMapping("/dogs/{id}")
     public Resource<Dog> findOne(@PathVariable Long id)
     {
-        Dog foundEmp = dogrepo.findById(id)
+        Dog foundDog = dogrepo.findById(id)
                 .orElseThrow(() -> new DogNotFoundException(id));
 
-        return assembler.toResource(foundEmp);
+        return assembler.toResource(foundDog);
     }
     // ************ TEMP ************
 
@@ -76,5 +76,32 @@ public class DogController
                 .map(assembler::toResource)
                 .collect(Collectors.toList());
         return new Resources<>(dogs, linkTo(methodOn(DogController.class).all()).withSelfRel());
+    }
+
+    @PutMapping("/dogs/{id}")
+    public ResponseEntity<Dog> updateDog(@PathVariable(value = "id") Long id,
+                                                   @Valid @RequestBody Dog dogDetails)
+    {
+        Dog dog = dogrepo.findById(id)
+                .orElseThrow(() -> new DogNotFoundException(id));
+        dog.setName(dogDetails.getName());
+        dog.setWeight(dogDetails.getWeight());
+        dog.setApartment(dogDetails.isApartment());
+        final Dog updatedDog = dogrepo.save(dog);
+        return ResponseEntity.ok(updatedDog);
+    }
+
+    @PostMapping("/dogs")
+    public Dog createDog(@Valid @RequestBody Dog dog) {
+        return dogrepo.save(dog);
+    }
+
+    @DeleteMapping("/dogs/{id}")
+    public String updateDog(@PathVariable(value = "id") Long id)
+    {
+        Dog dog = dogrepo.findById(id)
+                .orElseThrow(() -> new DogNotFoundException(id));
+        dogrepo.delete(dog);
+        return "Dog deleted";
     }
 }
