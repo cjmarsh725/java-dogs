@@ -24,6 +24,7 @@ public class DogController
         this.assembler = assembler;
     }
 
+    // ************ TEMP ************
     @GetMapping("/dogs")
     public Resources<Resource<Dog>> all()
     {
@@ -40,5 +41,40 @@ public class DogController
                 .orElseThrow(() -> new DogNotFoundException(id));
 
         return assembler.toResource(foundEmp);
+    }
+    // ************ TEMP ************
+
+    @GetMapping("/dogs/breeds")
+    public Resources<Resource<Dog>> sortByBreed()
+    {
+        List<Resource<Dog>> dogs = dogrepo.findAllByOrderByNameAsc().stream()
+                .map(assembler::toResource)
+                .collect(Collectors.toList());
+        return new Resources<>(dogs, linkTo(methodOn(DogController.class).all()).withSelfRel());
+    }
+
+    @GetMapping("/dogs/weight")
+    public Resources<Resource<Dog>> sortByWeight()
+    {
+        List<Resource<Dog>> dogs = dogrepo.findAllByOrderByWeightAsc().stream()
+                .map(assembler::toResource)
+                .collect(Collectors.toList());
+        return new Resources<>(dogs, linkTo(methodOn(DogController.class).all()).withSelfRel());
+    }
+
+    @GetMapping("/dogs/breeds/{breed}")
+    public Resource<Dog> findOneBreed(@PathVariable String breed)
+    {
+        Dog foundDog = dogrepo.findByNameIgnoreCase(breed);
+        return assembler.toResource(foundDog);
+    }
+
+    @GetMapping("/dogs/apartment")
+    public Resources<Resource<Dog>> getIsApartment()
+    {
+        List<Resource<Dog>> dogs = dogrepo.findByApartmentEquals(true).stream()
+                .map(assembler::toResource)
+                .collect(Collectors.toList());
+        return new Resources<>(dogs, linkTo(methodOn(DogController.class).all()).withSelfRel());
     }
 }
